@@ -1,7 +1,5 @@
 package inview.translationcard;
 
-//import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
