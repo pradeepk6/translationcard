@@ -3,7 +3,6 @@ package inview;
 import inview.translationcard.Card;
 import inview.translationcard.ExcelCardReader;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
@@ -13,9 +12,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit test for simple App.
+ *
  */
-@Ignore
 public class ExcelCardReaderTest {
 
     static URL fileUrl;
@@ -34,8 +32,6 @@ public class ExcelCardReaderTest {
 
     @BeforeClass
     public static void setUp() {
-        //read sample data file from test resources
-
     }
 
     @Test
