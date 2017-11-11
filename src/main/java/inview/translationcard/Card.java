@@ -8,7 +8,7 @@ public class Card implements Serializable {
     private String id;
     private String text;
     private String description;
-    private int max_len;
+    public static final int MAX_LEN = 100;
 
     public Card() {
     }
@@ -37,12 +37,24 @@ public class Card implements Serializable {
         this.description = description;
     }
 
-    public int getMax_len() {
-        return max_len;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Card card = (Card) o;
+
+        if (!id.equals(card.id)) return false;
+        if (!text.equals(card.text)) return false;
+        return description.equals(card.description);
     }
 
-    public void setMax_len(int max_len) {
-        this.max_len = max_len;
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + text.hashCode();
+        result = 31 * result + description.hashCode();
+        return result;
     }
 
     @Override
@@ -51,7 +63,7 @@ public class Card implements Serializable {
                 "id='" + id + '\'' +
                 ", text='" + text + '\'' +
                 ", description='" + description + '\'' +
-                ", max_len=" + max_len +
+                ", MAX_LEN=" + MAX_LEN +
                 '}';
     }
 }

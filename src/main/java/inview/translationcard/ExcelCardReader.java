@@ -1,98 +1,97 @@
 package inview.translationcard;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+//import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExcelCardReader {
+
+    private static List<Card> cardList;
+    private static int CARD_COL_COUNT = 4;
+
     public ExcelCardReader() {
     }
 
-    public static List<Card> read(String filePath) {
-        List<Card> cardList = null;
-        try {
-            Workbook wb = WorkbookFactory.create(new File(filePath));
+    public List<Card> read(String filePath) throws Exception {
+        cardList = new ArrayList<>();
+        try (Workbook wb = WorkbookFactory.create(new File(filePath))) {
             Sheet sheet = wb.getSheetAt(0);
-            List<String> rowList = null;
-
-            if (sheet == null) return null;
-            else rowList = readSheet(sheet);
-            //convert list of rows into list of Cards
-            cardList = ExcelCardReader.buildCard(rowList);
+            cardList = readSheet(sheet);
         } catch (IOException ioe) {
             ioe.printStackTrace();
-        } catch (InvalidFormatException ife) {
-            ife.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            return null;
         }
         return cardList;
     }
 
-    //utility method to read a sheet into a List of comma
-    //seperated rows
-    public static List<String> readSheet(Sheet sheet) throws ParseException {
+    //read a sheet into a List of Card objects
+    public List<Card> readSheet(Sheet sheet) {
         if (sheet == null) throw new NullPointerException();
-        List<String> rowList = new ArrayList<>();
         // Skip first row of Headers
         int rowStart = sheet.getFirstRowNum() + 1;
         int rowEnd = sheet.getLastRowNum() + 1;
-        //System.out.println("rowEnd = " + rowEnd);
-        String rowStr = null;
+        Card card;
+        Row r;
+
         for (int rowNum = rowStart; rowNum < rowEnd; rowNum++) {
-            Row r = sheet.getRow(rowNum);
+            r = sheet.getRow(rowNum);
+            //if row is null or blank
             if (r == null) {
                 continue;
             }
-            int MY_MINIMUM_COLUMN_COUNT = 4;
-            int lastColumn = Math.max(r.getLastCellNum(), MY_MINIMUM_COLUMN_COUNT);
-            String cellContent = "";
-            for (int cn = 0; cn < lastColumn; cn++) {
-                //cellContent = "";
-                Cell c = r.getCell(cn, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                if (c == null) {
-                    cellContent += "";
-                } else {
-                    if (c.getCellTypeEnum() == CellType.STRING)
-                        cellContent += c.getStringCellValue();
-                    else if (c.getCellTypeEnum() == CellType.NUMERIC)
-                        cellContent += ((int) c.getNumericCellValue());
-                }
-                //keep appending the seperator but for the last col
-                if (cn < lastColumn - 1) cellContent += ",";
+            //set lastcell to be traversed for rows with varying num of cols
+            int lastColumn = Math.min(r.getLastCellNum(), CARD_COL_COUNT);
+            if (isRowBlank(r, lastColumn)) {
+                continue;
             }
-            //System.out.println("cellContent = " + cellContent);
-            rowList.add(cellContent);
-        }
-        return rowList;
-    }
-
-    /*
-    Takes in pre-validated comma-delimited rows and converts them into a list of Card objects.
-    Values in each row correspond respectively to id,text,description and max_len
-    @throws NullPointerException if cardRows is null
-     */
-    public static List<Card> buildCard(List<String> cardRows) {
-        if (cardRows == null) throw new NullPointerException();
-        List<Card> cardList = new ArrayList<Card>();
-        String[] tokens;
-        Card card = null;
-        for (String row : cardRows) {
-            tokens = row.split(",");
             card = new Card();
-            card.setId(tokens[0]);
-            card.setText(tokens[1]);
-            card.setDescription(tokens[2]);
-            card.setMax_len(Integer.valueOf(tokens[3]));
-            cardList.add(card);
+
+            for (int cn = 0; cn < lastColumn; cn++) {
+                Cell c = r.getCell(cn, Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
+                if (cn == 0) { //process col 'ID'
+                    if (c.getCellTypeEnum() == CellType.STRING)
+                        card.setId(c.getStringCellValue());
+                    else if (c.getCellTypeEnum() == CellType.NUMERIC)
+                        card.setId(String.valueOf((int) (c.getNumericCellValue())));
+                    else {
+                        //id is assumed to be mandaorty
+                        //and so skip the row as id cannot be read
+                        card = null;
+                        break;
+                    }
+                } else if (cn == 1) { //process col 'TEXT'
+                    if (c.getCellTypeEnum() == CellType.STRING)
+                        card.setText(c.getStringCellValue());
+                } else if (cn == 2) { //process col 'DESCRIPTION'
+                    if (c.getCellTypeEnum() == CellType.STRING)
+                        card.setDescription(c.getStringCellValue());
+                    else if (c.getCellTypeEnum() == CellType.BLANK)
+                        card.setDescription("");
+                } else if (cn == 3) { //process col 'LENGTH'
+                    //length has been delcared as a constant in class 'Card' and
+                    // so no need to process it.
+                    //if (c.getCellTypeEnum() == CellType.NUMERIC)
+                    //card.setMax_len( (int)c.getNumericCellValue() );
+                }
+            }
+            if (card != null) cardList.add(card);
         }
         return cardList;
+    }
+
+    //check if all cols in the row are blank
+    private boolean isRowBlank(Row r, int colCount) {
+        boolean bool = true;
+        for (int i = 0; i < colCount; i++) {
+            Cell cell = r.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            if (!(cell.getCellTypeEnum() == CellType.BLANK))
+                return false;
+        }
+        return bool;
     }
 
 }

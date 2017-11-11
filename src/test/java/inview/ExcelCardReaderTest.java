@@ -1,38 +1,54 @@
 package inview;
 
 import inview.translationcard.Card;
-import inview.translationcard.CardWriter;
 import inview.translationcard.ExcelCardReader;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for simple App.
  */
+@Ignore
 public class ExcelCardReaderTest {
 
-    URL fileUrl;
+    static URL fileUrl;
+    static ExcelCardReader excelCardReader;
+    static List<Card> cardList;
 
     public ExcelCardReaderTest() {
-        //sample date file
         fileUrl = this.getClass().getResource("/CardSampleData.xls");
-
+        excelCardReader = new ExcelCardReader();
+        try {
+            cardList = excelCardReader.read(fileUrl.getPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @BeforeClass
     public static void setUp() {
+        //read sample data file from test resources
+
     }
 
     @Test
-    public void testRead() {
-        List<Card> cardList = ExcelCardReader.read(fileUrl.getPath());
-        //System.out.println("cardList.toString() = " + cardList.toString());
-        CardWriter.writeCards(cardList);
-        assertTrue(cardList.size() == 3);
+    public void testSkipEmptyAndInvalidRows() {
+        assertTrue(cardList.size() == 4);
+    }
+
+    @Test
+    public void testReadCardFromRow() {
+        Card card = new Card();
+        card.setId("5E");
+        card.setText("Начало");
+        card.setDescription("Start in Russian");
+        assertEquals(cardList.get(2), card);
     }
 }
