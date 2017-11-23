@@ -49,3 +49,4 @@
 ############################
 /src/test/drivers/
 
+/src/main/java/inview/translationcard/legacycardreader/ToCSV.java

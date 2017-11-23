@@ -1,10 +1,11 @@
-package inview;
+package inview.cardreader;
 
 import inview.translationcard.Card;
-import inview.translationcard.CardReader;
+import inview.translationcard.cardreader.CardReader;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
@@ -20,7 +21,15 @@ public class CardReaderTest {
 
     @BeforeClass
     public static void setUp() {
-        cardList = CardReader.readCards("src/test/resources");
+        try {
+            CardReader cardReader = new CardReader();
+            cardList = cardReader.readJavaSerObjCards("src/test/resources");
+        } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
     }
     @Test
     public void testReadAllCardsinDir() {
