@@ -1,5 +1,5 @@
 ##### About:
-Java Serialization code sample
+Java Serialization and other code samples
 
 ##### Tested with:
 Java 1.7
